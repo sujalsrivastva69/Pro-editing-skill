@@ -72,6 +72,11 @@ def main():
     vad = MODEL_DIR / "silero_vad.onnx"
     print("VAD model:", "ok" if dl(f"{REL}/silero_vad.onnx", vad) else "MISSING")
 
+    from make_luts import LUTS, write_cube
+    for n, f in LUTS.items():
+        write_cube(n, f)
+    print("colour LUTs: ok (clean, warm_film, teal_orange, moody, punchy)")
+
     if a.model:
         d = MODEL_DIR / f"sherpa-onnx-whisper-{a.model}"
         if not d.exists():

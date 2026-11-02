@@ -35,6 +35,12 @@ def grade_chain(g, sharpen=True):
     parts = [f"eq=contrast={g.get('contrast', 1.0)}:saturation={g.get('saturation', 1.0)}:brightness={g.get('brightness', 0.0)}"]
     if g.get("temp", 6500) != 6500:
         parts.append(f"colortemperature=temperature={g['temp']}")
+    if g.get("lut"):
+        from make_luts import resolve
+        p = resolve(str(g["lut"]))
+        if p is None:
+            raise SystemExit(f"LUT not found: {g['lut']} (run make_luts.py or give a .cube path)")
+        parts.append(f"lut3d=file='{Path(p).resolve()}':interp=tetrahedral")
     if sharpen and g.get("sharpen", 0) > 0:
         parts.append(f"unsharp=5:5:{g['sharpen']}:5:5:0.0")
     return ",".join(parts)
@@ -93,6 +99,7 @@ def main():
     ap.add_argument("--fonts", default=str(FONT_DIR))
     ap.add_argument("--preview", action="store_true", help="540x960, fast preset")
     ap.add_argument("--crf", type=int, default=17)
+    ap.add_argument("--uhd", action="store_true", help="export at 2x size (2160x3840) with Lanczos - NOT AI, only gives YouTube a higher quality tier; no new detail")
     ap.add_argument("--proof", default="", help="comma separated times in seconds: write only those frames as PNG into the folder given by --out, then stop")
     a = ap.parse_args()
 
@@ -174,6 +181,8 @@ def main():
     tail = []
     if (OW, OH) != (W0, H0):
         tail.append(f"scale={OW}:{OH}:flags=lanczos")
+    if a.uhd and not a.preview and not a.proof:
+        tail.append(f"scale={OW * 2}:{OH * 2}:flags=lanczos")
     if g.get("grain", 0):
         tail.append(f"noise=alls={g['grain']}:allf=t")
     if a.captions:

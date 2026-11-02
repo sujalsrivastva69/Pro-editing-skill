@@ -69,6 +69,7 @@ def main():
     ap.add_argument("--update", help="existing plan.json: keep everything, re-place sfx")
     ap.add_argument("--emphasis", default="", help="extra words that deserve a snap zoom, comma separated")
     ap.add_argument("--grade", default="natural", choices=["natural", "warm", "cool", "punchy"])
+    ap.add_argument("--lut", default="", help="colour LUT on top of the grade: clean|warm_film|teal_orange|moody|punchy or a .cube path (see make_luts.py)")
     ap.add_argument("--size", default="1080x1920")
     ap.add_argument("--face-y", type=float, default=0.38, help="where the face sits vertically (0 top .. 1 bottom); zooms centre here")
     a = ap.parse_args()
@@ -120,6 +121,8 @@ def main():
         "cards": [],
         "music": None,
     }
+    if a.lut:
+        plan["grade"]["lut"] = a.lut
     plan["sfx"] = make_sfx(plan, dur)
     json.dump(plan, open(a.out, "w", encoding="utf-8"), indent=1)
     print(f"{len(zooms)} framing/push zooms, {len(snaps)} snap zooms, {len(plan['sfx'])} sounds -> {a.out}")
